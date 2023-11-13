@@ -10,14 +10,9 @@ let participants = db.collection('participants')
 router.get('/', async function(req, res, next) {
   let list = await participants.list();
   if (list == null) {
-    res.json({
-      status: 'fail'
-    });
+    res.json({ status: 'fail' });
   } else {
-    res.json({
-      status: 'success',
-      participants: list,
-    })
+    res.json({ status: 'success', participants: list })
   }
 });
 
