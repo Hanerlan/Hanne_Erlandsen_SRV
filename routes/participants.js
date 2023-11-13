@@ -9,6 +9,16 @@ let participants = db.collection('participants')
 // list of all participants
 router.get('/', async function(req, res, next) {
   let list = await participants.list();
+  if (list == null) {
+    res.json({
+      status: 'fail'
+    });
+  } else {
+    res.json({
+      status: 'success',
+      participants: list,
+    })
+  }
 });
 
 // personal details of all active participants (including first and last name)
@@ -40,7 +50,44 @@ return
 /* POST */
 // add a new participant
 router.post('/add', async (req, res, next) => {
-return 	
+  const { email, firstName, lastName, dob, work, home, active } = req.body;
+  if (!email || !firstName || !lastName || !dob || !work || !home  || active === undefined) {
+    return res.status(400).json({ error: 'Missing required fields' })
+  }
+  if (!isValidDate(dob)) {
+    return res.status(400).json({ error: 'DOB is in incorrect format' })
+  }
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: 'The email is in incorrect format' })
+  }
+  if (typeof active !== 'boolean') {
+    return res.status(400).json({ error: 'Invalid value for the "active" flag' })
+  }
+
+  const participantData = {
+    email,
+    firstName,
+    lastName,
+    dob,
+    work: {
+      companyName: work.companyName,
+      salary: work.salary,
+      currency: work.currency
+    },
+    home: {
+      country: home.country,
+      city: home.city,
+    },
+    active,
+  }
+
+  await participants.set(email, participantData);
+
+  res.json({ 
+    status: 'success',
+    message: 'Participant added successfully',
+    participant: participantData,
+  })
 });
 
 
@@ -62,6 +109,16 @@ To delete: no permanent deletes, but flag the participants as deleted (soft-dele
 Meaning, the database record is not entirely deleted but flagged as no longer usable.
   -> could be a Boolean field/column named “active” with a value of 0 or 1 to indicate if the participant has been ‘deleted.’ 
 */
+
+function isValidDate(dateString) {
+  const dateRegex = /^\d{4}\/\d{2}\/\d{2}$/;
+  return dateRegex.test(dateString);
+}
+
+function isValidEmail(email) {
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+return emailRegex.test(email);
+}
 
 
 module.exports = router;
