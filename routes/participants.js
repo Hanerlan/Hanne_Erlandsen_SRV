@@ -45,44 +45,53 @@ return
 /* POST */
 // add a new participant
 router.post('/add', async (req, res, next) => {
-  const { email, firstName, lastName, dob, work, home, active } = req.body;
-  if (!email || !firstName || !lastName || !dob || !work || !home  || active === undefined) {
-    return res.status(400).json({ error: 'Missing required fields' })
-  }
-  if (!isValidDate(dob)) {
-    return res.status(400).json({ error: 'DOB is in incorrect format' })
-  }
-  if (!isValidEmail(email)) {
-    return res.status(400).json({ error: 'The email is in incorrect format' })
-  }
-  if (typeof active !== 'boolean') {
-    return res.status(400).json({ error: 'Invalid value for the "active" flag' })
-  }
+  try {
+    const { email, firstName, lastName, dob, work, home, active } = req.body;
+    const existingParticipant = await participants.get(email);
+    if (existingParticipant) {
+      return res.status(409).json({ error: 'A participant with this email already exists.' })
+    }
 
-  const participantData = {
-    email,
-    firstName,
-    lastName,
-    dob,
-    work: {
-      companyName: work.companyName,
-      salary: work.salary,
-      currency: work.currency
-    },
-    home: {
-      country: home.country,
-      city: home.city,
-    },
-    active,
+    if (!email || !firstName || !lastName || !dob || !work || !home  || active === undefined) {
+      return res.status(400).json({ error: 'Missing required fields.' })
+    }
+    if (!isValidDate(dob)) {
+      return res.status(400).json({ error: 'Invalid date of birth. Correct format is YYYY/MM/DD' })
+    }
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ error: 'Invalid email address.' })
+    }
+    if (typeof active !== 'boolean') {
+      return res.status(400).json({ error: 'Invalid active status. Must be true or false.' })
+    }
+    if (typeof work.salary !== 'number' || isNaN(work.salary)) {
+      return res.status(400).json({ error: 'Invalid salary value. Salary must be a number.'})
+    }
+  
+    const participantData = {
+      email,
+      firstName,
+      lastName,
+      dob,
+      work: {
+        companyName: work.companyName,
+        salary: work.salary,
+        currency: work.currency
+      },
+      home: {
+        country: home.country,
+        city: home.city,
+      },
+      active,
+    }
+  
+    await participants.set(email, participantData);
+  
+    res.json({ status: 'success', message: 'Participant added successfully', participant: participantData })
+  } catch(error) {
+    console.error(error);
+    res.status(500).json({ status: 'error', message: 'Internal server error' })
   }
-
-  await participants.set(email, participantData);
-
-  res.json({ 
-    status: 'success',
-    message: 'Participant added successfully',
-    participant: participantData,
-  })
 });
 
 
