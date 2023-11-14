@@ -12,9 +12,8 @@ router.get('/', async function(req, res) {
     let list = await participants.list();
     if (!list) {
       res.status(400).json({ status: 'Failed to retrieve the list of participants.' });
-    } else {
-      res.json({ status: 'success', participants: list })
-    }
+    } 
+    res.json({ status: 'success', participants: list })
   } catch (err) {
     console.error(err);
     res.status(500).json({ status: 'error', message: 'Internal server error' })
@@ -28,12 +27,30 @@ return
 
 // all deleted participants' personal details (including first and last name)
 router.get('/details/deleted', async (req, res, next) => {
-return 	
+  
 });
 
 // personal details of the specified participant (including first and last name, active) (only not deleted)
 router.get('/details/:email', async (req, res, next) => {
-  let item = await participants.get(req.params.key);
+  try {
+    let email = req.params.email;
+    const existingParticipant = await participants.get(email);
+
+    if(!existingParticipant) {
+      return res.status(400).json({ error: 'Participant not found.'})
+    }
+    
+    const isActive = existingParticipant.props.active;
+
+    if(isActive === false) { 
+      return res.status(400).json({ error: 'Participant has been deleted.' })
+    }
+
+    return res.json({ status: 'success', participant: existingParticipant })
+  } catch(err) {
+    console.error(err);
+    res.status(500).json({ status: 'error', message: 'Internal server error' })
+  }
 });
 
 // work details of the specified participant (including company name and salary with currency) (only not deleted)
@@ -73,8 +90,7 @@ router.post('/add', async (req, res, next) => {
       return res.status(400).json({ error: 'Invalid salary value. Salary must be a number.'})
     }
   
-    const participantData = {
-      email,
+    await participants.set(email, {
       firstName,
       lastName,
       dob,
@@ -88,11 +104,9 @@ router.post('/add', async (req, res, next) => {
         city: home.city,
       },
       active,
-    }
+    });
   
-    await participants.set(email, participantData);
-  
-    res.json({ status: 'success', message: 'Participant added successfully', participant: participantData })
+    res.json({ status: 'success', message: 'Participant added successfully' }) // doesn't return the JSON object, needs fixes
   } catch(err) {
     console.error(err);
     res.status(500).json({ status: 'error', message: 'Internal server error' })
@@ -108,9 +122,23 @@ router.put('/:email', async (req, res, next) => {
 
 
 /* DELETE */
-// 'delete' (soft delete) the participant of provided email 
+// soft-delete the participant of provided email 
 router.delete('/:email', async (req, res, next) => {
-return 	
+  try {
+    const email = req.params.email;
+    const existingParticipant = await participants.get(email);
+
+    if (!existingParticipant) {
+      return res.status(404).json({ error: 'Participant not found.' });
+    }
+
+    await participants.set(email, { active: false });
+  
+    return res.json({ status: 'Success', message: 'Participant deleted successfully.', participant: existingParticipant });
+  } catch(err) {
+    console.error(err);
+    res.status(500).json({ status: 'error', message: 'Internal server error' });
+  }
 });
 
 /*
