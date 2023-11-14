@@ -7,12 +7,17 @@ let participants = db.collection('participants')
 
 /* GET */
 // list of all participants
-router.get('/', async function(req, res, next) {
-  let list = await participants.list();
-  if (list == null) {
-    res.json({ status: 'fail' });
-  } else {
-    res.json({ status: 'success', participants: list })
+router.get('/', async function(req, res) {
+  try {
+    let list = await participants.list();
+    if (!list) {
+      res.status(400).json({ status: 'Failed to retrieve the list of participants.' });
+    } else {
+      res.json({ status: 'success', participants: list })
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ status: 'error', message: 'Internal server error' })
   }
 });
 
@@ -88,8 +93,8 @@ router.post('/add', async (req, res, next) => {
     await participants.set(email, participantData);
   
     res.json({ status: 'success', message: 'Participant added successfully', participant: participantData })
-  } catch(error) {
-    console.error(error);
+  } catch(err) {
+    console.error(err);
     res.status(500).json({ status: 'error', message: 'Internal server error' })
   }
 });
@@ -98,7 +103,7 @@ router.post('/add', async (req, res, next) => {
 /* PUT */
 // update the participant of provided email (exact same format as for /participants/add POST)
 router.put('/:email', async (req, res, next) => {
-return 	
+
 });
 
 
