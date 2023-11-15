@@ -90,7 +90,7 @@ router.post('/add', async (req, res, next) => {
       return res.status(400).json({ error: 'Invalid salary value. Salary must be a number.'})
     }
   
-    await participants.set(email, {
+    const newParticipant = await participants.set(email, {
       firstName,
       lastName,
       dob,
@@ -106,7 +106,7 @@ router.post('/add', async (req, res, next) => {
       active,
     });
   
-    res.json({ status: 'success', message: 'Participant added successfully' }) // doesn't return the JSON object, needs fixes
+    res.json({ status: 'success', message: 'Participant added successfully', participant: newParticipant }) 
   } catch(err) {
     console.error(err);
     res.status(500).json({ status: 'error', message: 'Internal server error' })
@@ -132,20 +132,18 @@ router.delete('/:email', async (req, res, next) => {
       return res.status(404).json({ error: 'Participant not found.' });
     }
 
-    await participants.set(email, { active: false });
+    if (existingParticipant.props.active === false) {
+      return res.status(404).json({ error: 'Participant has already been deleted.' });
+    }
+
+    const deletedParticipant = await participants.set(email, { active: false });
   
-    return res.json({ status: 'Success', message: 'Participant deleted successfully.', participant: existingParticipant });
+    return res.json({ status: 'Success', message: 'Participant deleted successfully.', participant: deletedParticipant });
   } catch(err) {
     console.error(err);
     res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 });
-
-/*
-To delete: no permanent deletes, but flag the participants as deleted (soft-delete).
-Meaning, the database record is not entirely deleted but flagged as no longer usable.
-  -> could be a Boolean field/column named “active” with a value of 0 or 1 to indicate if the participant has been ‘deleted.’ 
-*/
 
 function isValidDate(dateString) {
   const dateRegex = /^\d{4}\/\d{2}\/\d{2}$/;
@@ -170,18 +168,10 @@ All API endpoints need to return a JSON object as a response.
 Relevant and descriptive errors should be returned as JSON objects.
 
 
-Item participant: email (unique identifier), firstname, lastname, dob, active 
-fragment work: companyname, salary, currency
-fragment home: country, city 
-
-Validate that all properties have been provided in the requests body and if they are correctly formatted.
-  -> The DOB is a Date formatted (YYYY/MM/DD) and that the email address has the correct format
-
-
 CRUD for dynamoDB:
 collection.list() – Gets all results from the collection; only the keys of each record, without details.
 collection.get(key) – Gets the details of the item.
 collection.set(key, propertiesObject) – Adds/updates the record of the selected key.
-collection.delete(key) – Deletes the record of the selected key.
+
 
 */
