@@ -22,7 +22,6 @@ router.get('/', async function(req, res) {
 
 // personal details of all active participants (including first and last name)
 router.get('/details', async (req, res, next) => {
-return 	
 });
 
 // all deleted participants' personal details (including first and last name)
@@ -55,7 +54,21 @@ router.get('/details/:email', async (req, res, next) => {
 
 // work details of the specified participant (including company name and salary with currency) (only not deleted)
 router.get('/work/:email', async (req, res, next) => {
-return 	
+  try {
+    let email = req.params.email;
+    const existingParticipant = await participants.get(email);
+
+    if(!existingParticipant || existingParticipant.props.active === false) {
+      return res.status(400).json({ error: 'Participant not found.'})
+    }
+
+    const workDetails = existingParticipant.props.work;
+    res.json({ status: 'success', participant: workDetails }) 
+
+  } catch(err) {
+    console.error(err);
+    res.status(500).json({ status: 'error', message: 'Internal server error' })
+  }
 });
 
 // home details of the specified participant (including country and city) (only not deleted)
