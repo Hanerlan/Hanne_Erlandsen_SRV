@@ -73,7 +73,21 @@ router.get('/work/:email', async (req, res, next) => {
 
 // home details of the specified participant (including country and city) (only not deleted)
 router.get('/home/:email', async (req, res, next) => {
-return 	
+  try {
+    let email = req.params.email;
+    const existingParticipant = await participants.get(email);
+    
+    if(!existingParticipant || existingParticipant.props.active === false) {
+      return res.status(400).json({ error: 'Participant not found.'})
+    }
+
+    const homeDetails = existingParticipant.props.home;
+    res.json({ status: 'success', participant: homeDetails }) 
+
+  } catch(err) {
+    console.error(err);
+    res.status(500).json({ status: 'error', message: 'Internal server error' })
+  }
 });
 
 
