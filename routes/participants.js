@@ -91,7 +91,7 @@ router.get('/details/:email', async (req, res, next) => {
     const existingParticipant = await participants.get(email);
 
     if(!existingParticipant) {
-      return res.status(400).json({ error: 'Participant not found.'})
+      return res.status(404).json({ error: 'Participant not found.'})
     }
     if(existingParticipant.props.active === false) { 
       return res.status(400).json({ error: 'Participant has been deleted.' })
@@ -112,7 +112,7 @@ router.get('/work/:email', async (req, res, next) => {
     const existingParticipant = await participants.get(email);
 
     if(!existingParticipant) {
-      return res.status(400).json({ error: 'Participant not found.'})
+      return res.status(404).json({ error: 'Participant not found.'})
     }
     if(existingParticipant.props.active === false) { 
       return res.status(400).json({ error: 'Participant has been deleted.' })
@@ -134,7 +134,7 @@ router.get('/home/:email', async (req, res, next) => {
     const existingParticipant = await participants.get(email);
     
     if(!existingParticipant) {
-      return res.status(400).json({ error: 'Participant not found.'})
+      return res.status(404).json({ error: 'Participant not found.'})
     }
     if(existingParticipant.props.active === false) { 
       return res.status(400).json({ error: 'Participant has been deleted.' })
@@ -213,7 +213,7 @@ router.put('/:email', async (req, res, next) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!existingParticipant) {
-      return res.status(409).json({ error: 'Participant not found.' })
+      return res.status(404).json({ error: 'Participant not found.' })
     }
     const { email, firstName, lastName, dob, work, home, active } = req.body; 
 
@@ -270,7 +270,7 @@ router.delete('/:email', async (req, res, next) => {
     }
 
     if (existingParticipant.props.active === false) {
-      return res.status(404).json({ error: 'Participant has already been deleted.' });
+      return res.status(400).json({ error: 'Participant has already been deleted.' });
     }
 
     const deletedParticipant = await participants.set(email, { active: false });
@@ -278,7 +278,7 @@ router.delete('/:email', async (req, res, next) => {
     return res.json({ status: 'Success', message: 'Participant deleted successfully.', participant: deletedParticipant });
   } catch(err) {
     console.error(err);
-    res.status(500).json({ status: 'error', message: 'Internal server error' });
+    return res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 });
 
