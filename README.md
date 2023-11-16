@@ -9,6 +9,6 @@ https://tiny-lime-greyhound-wear.cyclic.app
 
 ## Configuration values
 .env file:
-///
+```
 CYCLIC_DB = tiny-lime-greyhound-wearCyclicDB
-///
+```
