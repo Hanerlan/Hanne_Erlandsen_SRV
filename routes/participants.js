@@ -155,6 +155,9 @@ router.post('/add', async (req, res, next) => {
   try {
     const { email, firstName, lastName, dob, work, home, active } = req.body;
     const existingParticipant = await participants.get(email);
+    const dateRegex = /^\d{4}\/\d{2}\/\d{2}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (existingParticipant) {
       return res.status(409).json({ error: 'A participant with this email already exists.' })
     }
@@ -162,10 +165,10 @@ router.post('/add', async (req, res, next) => {
     if (!email || !firstName || !lastName || !dob || !work || !home  || active === undefined) {
       return res.status(400).json({ error: 'Missing required fields.' })
     }
-    if (!isValidDate(dob)) {
+    if (!dateRegex.test(dob)) {
       return res.status(400).json({ error: 'Invalid date of birth. Correct format is YYYY/MM/DD' })
     }
-    if (!isValidEmail(email)) {
+    if (!emailRegex.test(email)) {
       return res.status(400).json({ error: 'Invalid email address.' })
     }
     if (typeof active !== 'boolean') {
@@ -205,6 +208,9 @@ router.post('/add', async (req, res, next) => {
 router.put('/:email', async (req, res, next) => {
   try {
     const existingParticipant = await participants.get(req.params.email);
+    const dateRegex = /^\d{4}\/\d{2}\/\d{2}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!existingParticipant) {
       return res.status(409).json({ error: 'Participant not found.' })
     }
@@ -213,10 +219,10 @@ router.put('/:email', async (req, res, next) => {
     if (!email || !firstName || !lastName || !dob || !work || !home  || active === undefined) {
       return res.status(400).json({ error: 'Missing required fields.' })
     }
-    if (!isValidDate(dob)) {
+    if (!dateRegex.test(dob)) {
       return res.status(400).json({ error: 'Invalid date of birth. Correct format is YYYY/MM/DD' })
     }
-    if (!isValidEmail(email)) {
+    if (!emailRegex.test(email)) {
       return res.status(400).json({ error: 'Invalid email address.' })
     }
     if (typeof active !== 'boolean') {
@@ -275,16 +281,6 @@ router.delete('/:email', async (req, res, next) => {
   }
 });
 
-function isValidDate(dateString) {
-  const dateRegex = /^\d{4}\/\d{2}\/\d{2}$/;
-  return dateRegex.test(dateString);
-}
-
-function isValidEmail(email) {
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-return emailRegex.test(email);
-}
-
 
 module.exports = router;
 
@@ -302,4 +298,14 @@ collection.list() – Gets all results from the collection; only the keys of eac
 collection.get(key) – Gets the details of the item.
 collection.set(key, propertiesObject) – Adds/updates the record of the selected key.
 
+
+function isValidDate(dateString) {
+  const dateRegex = /^\d{4}\/\d{2}\/\d{2}$/;
+  return dateRegex.test(dateString);
+}
+
+function isValidEmail(email) {
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+return emailRegex.test(email);
+}
 */
