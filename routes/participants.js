@@ -41,6 +41,7 @@ router.get('/details', async (req, res, next) => {
     );
     
     const activeParticipants = participantDetails.filter(participants => participants !== null);
+
     if (!activeParticipants || activeParticipants.length === 0) {
       return res.json({ status: 'No active participants to retrieve.' });
     }
@@ -283,29 +284,3 @@ router.delete('/:email', async (req, res, next) => {
 
 
 module.exports = router;
-
-
-/*
-Ensure only logged-in Admin users can access created endpoints.
-The Admin user will authenticate themselves via Basic authentication (set on the Cyclic.sh platform).
-
-All API endpoints need to return a JSON object as a response.
-Relevant and descriptive errors should be returned as JSON objects.
-
-
-CRUD for dynamoDB:
-collection.list() – Gets all results from the collection; only the keys of each record, without details.
-collection.get(key) – Gets the details of the item.
-collection.set(key, propertiesObject) – Adds/updates the record of the selected key.
-
-
-function isValidDate(dateString) {
-  const dateRegex = /^\d{4}\/\d{2}\/\d{2}$/;
-  return dateRegex.test(dateString);
-}
-
-function isValidEmail(email) {
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-return emailRegex.test(email);
-}
-*/
